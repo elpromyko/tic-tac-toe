@@ -10,6 +10,7 @@ class ScoreTable(object):
                               'b1': ' ', 'b2': ' ', 'b3': ' ',
                               'c1': ' ', 'c2': ' ', 'c3': ' '
                               }
+        self.winner = ''
 
     def show_score(self):
         print('  1 2 3\n'
@@ -22,30 +23,29 @@ class ScoreTable(object):
                                         c1=self.current_score['c1'], c2=self.current_score['c2'],
                                         c3=self.current_score['c3']))
 
-    def who_moves(self):
-        if self.player_move:
-            print('Player\'s move')
-        else:
-            print('Cpu\'s move')
 
     def make_a_move(self):
         if self.player_move:
-            self.move = input('You move to: ')
+            self.move = ''
+            while self.move not in self.list_empty_spaces():
+                self.move = input('Player moves to: ')
         else:
-            self.move = random.choice(self.empty_spaces())
+            self.move = random.choice(self.list_empty_spaces())
             print('CPU moves to {}'.format(self.move))
-        self.player_move = not self.player_move  # switch between player and CPU
-        return self.move, self.player_move
 
-    def empty_spaces(self):
+        return self.move
+
+    def list_empty_spaces(self):
         empty_spaces = [key for key in self.current_score.keys() if self.current_score[key] == ' ']
         return empty_spaces
 
     def update_score(self):
         if self.player_move:
-            self.current_score[self.move] = 'O'
-        else:
             self.current_score[self.move] = 'X'
+        else:
+            self.current_score[self.move] = 'O'
+
+        self.player_move = not self.player_move  # switch between player and CPU
 
         self.rows_columns_diagonals = {
             '1': [self.current_score['a1'], self.current_score['b1'], self.current_score['c1']],  # \
@@ -61,19 +61,30 @@ class ScoreTable(object):
     def have_winner(self):
         for list in self.rows_columns_diagonals.values():
             if list.count('X') == 3:
-                print('Player X wins')
-            if list.count('O') == 3:
-                print('Player O wins')
-        # if ' ' not in self.empty_spaces():  # wrong condition
-        #     print('Draw')                    # needs to be fixed
+                self.winner = 'Player X wins'
+            elif list.count('O') == 3:
+                self.winner = 'Cpu O wins'
+        if not self.list_empty_spaces():
+            self.winner = 'Draw'
+        return self.winner
+
+    def cpu_move(self):
+        for key in self.rows_columns_diagonals:
+            if self.rows_columns_diagonals[key].count('O') == 2:
+                self.rows_columns_diagonals[key] = ['O'] * 3
+                break
+        self.move = random.choice(self.list_empty_spaces())
+        print('CPU moves to {}'.format(self.move))
+        return self.move
+
+
 
 
 new_sc_tb = ScoreTable()  # create new instance of ScoreTable
-
-new_sc_tb.show_score()  # shows actual score
-
-new_sc_tb.who_moves()  # who is moving now
-new_sc_tb.make_a_move()
-new_sc_tb.update_score()
-new_sc_tb.have_winner()
 new_sc_tb.show_score()
+while new_sc_tb.winner == '':
+
+    new_sc_tb.make_a_move()
+    new_sc_tb.update_score()
+    new_sc_tb.show_score()
+    print(new_sc_tb.have_winner())
